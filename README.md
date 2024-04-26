@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
@@ -44,3 +45,9 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+=======
+<h1> 학습 목표 </h1>
+<h2>1. 리액트 쿼리</h2>
+<h2>2. TailWind CSS</h2>
+<h2>3. TypeScript</h2>
+>>>>>>> da72214bc320da06dba40e19275f0f84773cf5b7
