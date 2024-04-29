@@ -7,8 +7,12 @@ import { Nav } from "./component/Nav";
 import { List } from "./component/List";
 import { Edit } from "./component/Edit";
 import { MainPage } from "./component/MainPage";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Mypage } from "./component/Mypage";
 
 function App() {
+  const queryClient = new QueryClient();
   const LayOut = () => {
     return (
       <div>
@@ -18,13 +22,16 @@ function App() {
     );
   };
   return (
-    <Routes>
-      <Route path="/" element={<LayOut></LayOut>}>
-        <Route index element={<MainPage />} />
-        <Route path="list" element={<List />} />
-        <Route path="edit" element={<Edit />} />
-      </Route>
-    </Routes>
+    <QueryClientProvider client={queryClient}>
+      <Routes>
+        <Route path="/" element={<LayOut></LayOut>}>
+          <Route index element={<MainPage />} />
+          <Route path="list" element={<List />} />
+          <Route path="my" element={<Mypage />} />
+        </Route>
+      </Routes>
+      <ReactQueryDevtools />
+    </QueryClientProvider>
   );
 }
 

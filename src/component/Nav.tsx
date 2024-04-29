@@ -16,8 +16,8 @@ export const Nav = () => {
           </Link>
         </li>
         <li className="px-5">
-          <Link to={"edit"}>
-            <span>수정</span>
+          <Link to={"my"}>
+            <span>마이페이지</span>
           </Link>
         </li>
       </ul>
