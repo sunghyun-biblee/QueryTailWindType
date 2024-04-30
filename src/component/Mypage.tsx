@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useMutationState,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import React, { useState } from "react";
 import { list } from "./List";
 
@@ -10,20 +15,65 @@ export const Mypage = () => {
   const data = queryClient.getQueryData(["addItem"]);
 
   const updateMutation = useMutation({
-    mutationFn: async () => {
-      if (selectItem) {
-        const updateData =
-          Array.isArray(data) &&
-          data?.map((item) =>
+    mutationKey: ["mutateItem"],
+    mutationFn: delay,
+    onSuccess: () => {
+      setOnEdit(false);
+    },
+    onSettled: () => {
+      return queryClient.invalidateQueries({ queryKey: ["addItem"] });
+    },
+    onMutate: async (selectItem: list) => {
+      // 낙관적 업데이트: 변경 전 데이터 저장
+      const previousData: list[] | undefined = queryClient.getQueryData([
+        "addItem",
+      ]);
+
+      // 변경된 데이터를 즉시 적용하여 UI 갱신
+      queryClient.setQueryData(["addItem"], (oldData: list[] | undefined) => {
+        // 여기서 oldData는 이전 상태의 데이터입니다.
+        if (oldData) {
+          const newData = oldData.map((item) =>
             item.id === selectItem.id ? { ...item, ...selectItem } : item
           );
-        if (updateData) {
-          queryClient.setQueryData(["addItem"], updateData);
-          setOnEdit(false);
+          return newData;
         }
-      }
+        return oldData;
+      });
+
+      // 변경 전 데이터를 반환하여 롤백시 사용
+      return { previousData };
     },
+
+    // 변경 전 데이터를 반환하여 롤백시 사용
   });
+
+  async function delay() {
+    try {
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          if (selectItem) {
+            const updatedData =
+              Array.isArray(data) &&
+              data.map((item) =>
+                item.id === selectItem.id ? { ...item, ...selectItem } : item
+              );
+            if (updatedData) {
+              queryClient.setQueryData(["addItem"], updatedData);
+              setOnEdit(false);
+            }
+          }
+          resolve();
+        }, 3000); // 3초 뒤에 실행되도록 설정
+      });
+      // 여기까지 오류 없이 실행되었을 경우에만 성공으로 간주
+      return Promise.resolve();
+    } catch (error) {
+      // 오류가 발생한 경우 여기서 처리
+      console.error("오류 발생:", error);
+      return Promise.reject(error);
+    }
+  }
 
   const mypageRender = () => {
     if (!data) {
@@ -40,8 +90,11 @@ export const Mypage = () => {
       }
     }
   };
-  console.log(selectItem);
-  console.log(data);
+
+  console.log(updateMutation);
+  console.log("ispending", updateMutation.isPending);
+  console.log("isSuccess", updateMutation.isSuccess);
+
   return (
     <div>
       <h1>Mypage</h1>
@@ -54,6 +107,7 @@ export const Mypage = () => {
               <h3>Location: {item.locations}</h3>
               <button
                 onClick={() => {
+                  updateMutation.reset();
                   setSelectItem(item);
                   setOnEdit(true);
                 }}
@@ -64,7 +118,7 @@ export const Mypage = () => {
             </div>
           ))}
       </section>
-      {selectItem && onEdit && (
+      {selectItem && (
         <div>
           <span>이름 : </span>
           <input
@@ -84,7 +138,7 @@ export const Mypage = () => {
           />
           <button
             className=" border-2 border-blue-600 rounded-md px-2 py-1"
-            onClick={() => updateMutation.mutate()}
+            onClick={() => updateMutation.mutate(selectItem)}
           >
             확인
           </button>
